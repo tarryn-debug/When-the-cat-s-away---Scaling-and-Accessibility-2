@@ -206,16 +206,17 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      container-type: size; /* lets the map frame measure the stage */
     }
 
-    /* Map container matching 1112.8 / 498.4 */
+    /* Frame = the map's exact shape, fitted inside the stage ("contain").
+       Map, highlights and pins all live inside it, so they share one
+       coordinate system and scale together. 2.2327 = 1112.8 / 498.4 */
     .map-canvas-frame {
       position: relative;
-      width: 100%;
-      height: 100%;
+      flex: none;
+      width: min(100cqw, 100cqh * 2.2327);
       aspect-ratio: 1112.8 / 498.4;
-      max-height: 100%;
-      max-width: 100%;
     }
 
     .world-map-svg {
@@ -224,7 +225,7 @@
       width: 100%;
       height: 100%;
       display: block;
-      object-fit: fill;
+      object-fit: contain;
     }
 
     .map-highlights {
@@ -246,13 +247,14 @@
     }
 
     #hl-southchina.active {
-      opacity: 0.25;
+      opacity: 0.2;
     }
 
     /* Leader Line */
     .map-leader {
       opacity: 0;
       transition: opacity 0.2s ease;
+      pointer-events: none;
     }
 
     .map-leader.active {
@@ -315,14 +317,14 @@
       100% { transform: rotateY(180deg) scale(1); }
     }
 
-    /* PINS ALIGNED MATHEMATICALLY TO HIGHLIGHT COORDINATES (1112.8 x 498.4) */
-    .pin-ukraine    { top: 23.5%; left: 55.3%; }
-    .pin-turkey     { top: 29.8%; left: 57.0%; }
-    .pin-georgia    { top: 28.5%; left: 59.5%; }
-    .pin-syria      { top: 34.0%; left: 58.0%; }
-    .pin-yemen      { top: 48.0%; left: 61.2%; }
-    .pin-indiachina { top: 33.5%; left: 69.8%; }
-    .pin-southchina { top: 47.0%; left: 81.0%; }
+    /* PIN POSITIONS: percentages of the MAP (converted from Code 1) */
+    .pin-ukraine    { top: 22.4%; left: 55.3%; }
+    .pin-turkey     { top: 30.1%; left: 56.5%; }
+    .pin-georgia    { top: 27.5%; left: 59.0%; }
+    .pin-syria      { top: 32.7%; left: 58.1%; }
+    .pin-yemen      { top: 47.0%; left: 61.1%; }
+    .pin-indiachina { top: 31.7%; left: 69.9%; }
+    .pin-southchina { top: 47.0%; left: 80.9%; }
 
     /* ========================================================= */
     /* 3. MODALS & SPOTLIGHT OVERLAYS                            */
@@ -738,13 +740,13 @@
     </header>
 
     <main class="stage-view">
-      <!-- MAP CANVAS FRAME -->
+      <!-- MAP CANVAS FRAME (exact map shape) -->
       <div class="map-canvas-frame" id="map-canvas-frame">
         <!-- BASE MAP -->
         <img src="Resources/PastedVector-16.svg" id="main-world-map" alt="World Map" class="world-map-svg">
 
-        <!-- HIGHLIGHT MAP SVGS (Fixed exact geographic bounds on 1112.8 x 498.4 canvas) -->
-        <svg class="map-highlights" viewBox="0 0 1112.8 498.4" preserveAspectRatio="none" aria-hidden="true">
+        <!-- HIGHLIGHT MAP SVGS (map coordinates 1112.8 x 498.4) -->
+        <svg class="map-highlights" viewBox="0 0 1112.8 498.4" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
           <defs>
             <filter id="tint-southchina" color-interpolation-filters="sRGB">
               <feFlood flood-color="#475ED1" result="c"/>
@@ -757,9 +759,8 @@
           <image id="hl-georgia"    class="map-hl" href="Resources/PastedVector-21.svg" x="651"   y="133.5" width="22.1" height="9.5"/>
           <image id="hl-yemen"      class="map-hl" href="Resources/PastedVector-22.svg" x="664.5" y="219.8" width="34.1" height="24.2"/>
           <image id="hl-indiachina" class="map-hl" href="Resources/PastedVector-23.svg" x="769"   y="155.6" width="15.5" height="20.4"/>
-          <image id="hl-southchina" class="map-hl" href="Resources/PastedVector-28.svg" x="875.8" y="189"   width="54.6" height="84.1" filter="url(#tint-southchina)"/>
-          
-          <image id="leader-indiachina" class="map-leader" href="Resources/PastedVector-27.svg" x="773.8" y="156.8" width="4.7" height="7.2"/>
+          <image id="hl-southchina" class="map-hl" href="Resources/PastedVector-28.svg" x="878.0" y="197.5" width="54.5" height="84.5" filter="url(#tint-southchina)"/>
+          <polyline id="leader-indiachina" class="map-leader" points="778,156 777.7,160.9 775,163.6" fill="none" stroke="#E3120B" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
 
         <!-- MAP PINS -->
