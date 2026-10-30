@@ -29,21 +29,25 @@
       padding: 0;
     }
 
+    /* No vh units and no vertical centring: the page is exactly as tall as
+       the interactive, and reports that height to the Moodle parent (see the
+       height-reporting script at the end). 8px margin on top + 20px of room
+       below for the drop shadow. */
+    html { overflow-x: hidden; overflow-y: auto; }
+
     body {
       font-family: var(--font-main);
       background-color: #ffffff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 1.5rem;
-      margin: 0;
+      display: block;
+      margin: 8px;
+      padding: 0;
     }
 
     /* CONTAINER */
     .interactive-container {
       width: 100%;
       max-width: 1120px;
+      margin: 0 auto;
       aspect-ratio: 16 / 9;
       background: #ffffff;
       border-radius: 0;
@@ -697,10 +701,10 @@
     .interactive-container > * { --u: 0.089286cqw; }
 
     .app-header { padding: calc(12.8 * var(--u)) calc(28 * var(--u)); }
-    .sub-title { font-size: calc(15.2 * var(--u)); }
+    .sub-title { font-size: calc(17.5 * var(--u)); }
     .header-buttons { gap: calc(8 * var(--u)); }
-    .icon-btn { width: calc(32 * var(--u)); height: calc(32 * var(--u)); }
-    .icon-btn svg { width: calc(16 * var(--u)); height: calc(16 * var(--u)); }
+    .icon-btn { width: calc(36 * var(--u)); height: calc(36 * var(--u)); }
+    .icon-btn svg { width: calc(18 * var(--u)); height: calc(18 * var(--u)); }
 
     .view-cover { padding: calc(64 * var(--u)) calc(96 * var(--u)); }
     .cover-content { max-width: calc(460 * var(--u)); gap: calc(32 * var(--u)); }
@@ -716,26 +720,26 @@
     .spotlight-pin-icon { width: calc(20 * var(--u)); }
 
     .dialog-card { width: calc(960 * var(--u)); padding: calc(28 * var(--u)) calc(44 * var(--u)) calc(36 * var(--u)); }
-    .dialog-card h2 { font-size: calc(23.2 * var(--u)); margin-bottom: calc(16 * var(--u)); padding-bottom: calc(12 * var(--u)); }
-    .dialog-card p { font-size: calc(14.08 * var(--u)); }
-    .close-card-btn { top: calc(20 * var(--u)); right: calc(20 * var(--u)); width: calc(32 * var(--u)); height: calc(32 * var(--u)); font-size: calc(17.6 * var(--u)); }
+    .dialog-card h2 { font-size: calc(23.2 * var(--u) * (1 + (var(--fs, 1) - 1) * 0.5)); margin-bottom: calc(16 * var(--u)); padding-bottom: calc(12 * var(--u)); }
+    .dialog-card p { font-size: calc(14.08 * var(--u) * var(--fs, 1)); }
+    .close-card-btn { top: calc(20 * var(--u)); right: calc(20 * var(--u)); width: calc(36 * var(--u)); height: calc(36 * var(--u)); font-size: calc(20 * var(--u)); }
 
     .spotlight-view-container.layout-left .dialog-card { width: 43%; }
     .spotlight-view-container.layout-left.card-wide .dialog-card { width: 45%; }
     .spotlight-view-container.layout-left.card-wider .dialog-card { width: 52.5%; }
 
     .center-modal { padding: calc(52 * var(--u)) calc(56 * var(--u)) calc(36 * var(--u)); max-width: calc(820 * var(--u)); margin-top: calc(32 * var(--u)); }
-    .center-modal h2 { font-size: calc(15.2 * var(--u)); margin-bottom: calc(28 * var(--u)); }
+    .center-modal h2 { font-size: calc(18.5 * var(--u)); margin-bottom: calc(28 * var(--u)); }
     .modal-badge-graphic { top: calc(-42 * var(--u)); width: calc(84 * var(--u)); height: calc(84 * var(--u)); }
-    .action-btn { padding: calc(10.4 * var(--u)) calc(40 * var(--u)); font-size: calc(15.2 * var(--u)); }
+    .action-btn { padding: calc(11 * var(--u)) calc(40 * var(--u)); font-size: calc(16.5 * var(--u)); }
     .completion-card { max-width: calc(580 * var(--u)); padding: calc(44 * var(--u)) calc(48 * var(--u)) calc(36 * var(--u)); }
     .completion-illustration { max-width: calc(280 * var(--u)); margin-bottom: calc(24 * var(--u)); }
     .completion-buttons { gap: calc(20 * var(--u)); margin-top: calc(24 * var(--u)); }
 
     .biblio-overlay { padding: calc(24 * var(--u)); }
     .biblio-card { padding: calc(28 * var(--u)) calc(40 * var(--u)); }
-    .bib-head h2 { font-size: calc(18 * var(--u)); margin-bottom: calc(16 * var(--u)); }
-    .bib-body { padding: calc(18 * var(--u)) calc(24 * var(--u)); font-size: calc(15 * var(--u)); }
+    .bib-head h2 { font-size: calc(21 * var(--u)); margin-bottom: calc(16 * var(--u)); }
+    .bib-body { padding: calc(18 * var(--u)) calc(24 * var(--u)); font-size: calc(17 * var(--u)); }
     .bib-entry { margin-bottom: calc(14 * var(--u)); padding-left: calc(24 * var(--u)); text-indent: calc(-24 * var(--u)); }
 
     @media (max-width: 768px) {
@@ -1095,8 +1099,50 @@
       circle.style.setProperty('--cy', cy + 'px');
     }
 
+    /* AUTO-FIT: finds the largest text size (up to 1.26x, never below today's
+       size) at which the card still fits inside the interactive. Re-runs on
+       every open and whenever the container resizes (Moodle drawers). */
+    const FS_MAX = 1.26, FS_STEP = 0.02;
+    function fitAndAlign(pin) {
+      if (!pin) return;
+      const app = document.getElementById('interactive-app');
+      const card = document.querySelector('.dialog-card');
+      const stack = document.getElementById('spotlight-stack');
+      const beam = document.getElementById('spotlight-beam');
+      const isLeft = spotlightContainer.classList.contains('layout-left');
+      const margin = app.offsetWidth * 0.0107; /* ~12px at full size */
+
+      card.style.setProperty('--fs', '1');
+      alignSpotlightToPin(pin);
+      const baseBeamTop = beam.getBoundingClientRect().top;
+
+      function measure() {
+        const a = app.getBoundingClientRect();
+        const r = card.getBoundingClientRect();
+        if (isLeft) {
+          /* bottom-anchored card grows upward: keep clear of the top edge */
+          return { ok: r.top - a.top >= margin && a.bottom - r.bottom >= margin, shift: 0 };
+        }
+        /* centred layout: keep the beam where it is (so it still meets the
+           circle) and let the card grow down into the bottom padding */
+        const shift = baseBeamTop - beam.getBoundingClientRect().top;
+        return { ok: a.bottom - (r.bottom + shift) >= margin, shift: shift };
+      }
+
+      let best = 1, bestShift = 0;
+      for (let fs = FS_MAX; fs > 1.001; fs -= FS_STEP) {
+        card.style.setProperty('--fs', fs.toFixed(2));
+        alignSpotlightToPin(pin);
+        const m = measure();
+        if (m.ok) { best = fs; bestShift = m.shift; break; }
+      }
+      card.style.setProperty('--fs', best.toFixed(2));
+      alignSpotlightToPin(pin);
+      if (!isLeft && best > 1) stack.style.transform = 'translateY(' + bestShift + 'px)';
+    }
+
     function realign() {
-      if (contentModal.classList.contains('active')) alignSpotlightToPin(activePin);
+      if (contentModal.classList.contains('active')) fitAndAlign(activePin);
     }
     window.addEventListener('resize', realign);
     if (window.ResizeObserver) {
@@ -1170,7 +1216,7 @@
           spotlightContainer.className = "spotlight-view-container " + (data.layoutClass || "");
 
           activePin = e.currentTarget;
-          alignSpotlightToPin(activePin);
+          fitAndAlign(activePin);
           contentModal.classList.add('active');
           e.currentTarget.classList.add('viewed');
           viewedMap.add(id);
@@ -1257,6 +1303,49 @@
       biblioOverlay.classList.remove('active');
       coverView.classList.remove('hidden');
     });
+
+    /* ── Auto height reporting to parent (Moodle) ─────────────────────
+       Same message the working version sends ("ce-interactive"), so the
+       parent page's iframe-interactive listener resizes the frame to fit.
+       Nothing that sets the page height uses vh units, so resizing the
+       frame cannot change the measured value (no feedback loop). */
+    (function () {
+      var lastSent = 0, queued = false;
+      function reportHeight() {
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(function () { queued = false; _report(); });
+      }
+      function _report(force) {
+        /* +28px: 8px top margin and 20px bottom room for the drop shadow */
+        var h = Math.ceil(document.body.getBoundingClientRect().height) + 28;
+        if (h === lastSent && force !== true) return;
+        lastSent = h;
+        window.parent.postMessage({ type: 'resize', app: 'ce-interactive', height: h }, '*');
+      }
+      [150, 500, 1200, 2500, 5000].forEach(function (t) {
+        setTimeout(function () { _report(true); }, t);
+      });
+      window.addEventListener('pageshow', function () { _report(true); });
+      document.addEventListener('visibilitychange', function () { if (!document.hidden) _report(true); });
+      window.addEventListener('message', function (e) {
+        if (e.data && (e.data.type === 'request-size' || e.data.type === 'ce-interactive-request')) _report(true);
+      });
+      if (window.ResizeObserver) {
+        new ResizeObserver(reportHeight).observe(document.body);
+      } else {
+        setInterval(reportHeight, 500);
+      }
+      window.addEventListener('resize', reportHeight);
+      window.addEventListener('load', function () {
+        reportHeight();
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(function () { setTimeout(function () { _report(true); }, 60); });
+        }
+        setTimeout(reportHeight, 300);
+      });
+      reportHeight();
+    })();
   </script>
 </body>
 </html>
