@@ -721,7 +721,9 @@
 
     .dialog-card { width: calc(960 * var(--u)); padding: calc(28 * var(--u)) calc(44 * var(--u)) calc(36 * var(--u)); }
     .dialog-card h2 { font-size: calc(23.2 * var(--u) * (1 + (var(--fs, 1) - 1) * 0.5)); margin-bottom: calc(16 * var(--u)); padding-bottom: calc(12 * var(--u)); }
-    .dialog-card p { font-size: calc(14.08 * var(--u) * var(--fs, 1)); }
+    .dialog-card p { font-size: calc(14.08 * var(--u) * var(--fs, 1)); line-height: 1.65; color: #1a1a1a; }
+    .dialog-card p.is-scrollable { overflow-y: auto; padding-right: calc(10 * var(--u)); }
+    .dialog-card p.is-scrollable:focus-visible { outline: 3px solid var(--color-primary-blue); outline-offset: 2px; }
     .close-card-btn { top: calc(20 * var(--u)); right: calc(20 * var(--u)); width: calc(36 * var(--u)); height: calc(36 * var(--u)); font-size: calc(20 * var(--u)); }
 
     .spotlight-view-container.layout-left .dialog-card { width: 43%; }
@@ -1043,13 +1045,16 @@
       circle.style.setProperty('--cx', cx + 'px');
       circle.style.setProperty('--cy', cy + 'px');
 
+      const em = edgeMargin();
       if (spotlightContainer.classList.contains('anchor-card')) {
-        const top = Math.min(cy - 0.17 * circle.offsetWidth, app.offsetHeight - 12 - card.offsetHeight);
-        card.style.top = top + 'px';
+        /* Georgia keeps its card anchored beside the circle */
+        let top = Math.min(cy - 0.17 * circle.offsetWidth, app.offsetHeight - em - card.offsetHeight);
+        card.style.top = Math.max(top, em) + 'px';
         card.style.bottom = 'auto';
       } else {
-        card.style.top = '';
-        card.style.bottom = '';
+        /* every other card is centred vertically in the interactive */
+        card.style.top = Math.max(em, (app.offsetHeight - card.offsetHeight) / 2) + 'px';
+        card.style.bottom = 'auto';
       }
 
       const r = circle.offsetWidth / 2 - 1;
@@ -1099,46 +1104,105 @@
       circle.style.setProperty('--cy', cy + 'px');
     }
 
-    /* AUTO-FIT: finds the largest text size (up to 1.26x, never below today's
-       size) at which the card still fits inside the interactive. Re-runs on
-       every open and whenever the container resizes (Moodle drawers). */
-    const FS_MAX = 1.26, FS_STEP = 0.02;
+    /* ONE SHARED TEXT SIZE for every card (consistency + accessibility).
+       The size is the largest the tightest card (Yemen, the longest text)
+       allows, but never below FS_TARGET_MIN (about 16px at full size). If a
+       card still can't fit at that size, its text area scrolls inside the
+       card (keyboard focusable) rather than shrinking below the minimum.
+       Everything scales with the container, so the result is the same at
+       any width. */
+    const FS_MAX = 1.26, FS_STEP = 0.02, FS_TARGET_MIN = 1.14;
+    let globalFs = null;
+
+    function edgeMargin() {
+      return document.getElementById('interactive-app').offsetWidth * 0.0214; /* ~24px at full size */
+    }
+    function clearScroll() {
+      cardBody.style.maxHeight = '';
+      cardBody.classList.remove('is-scrollable');
+      cardBody.removeAttribute('tabindex');
+    }
+    function setRegionContent(id) {
+      const d = regionData[id];
+      cardTitle.textContent = d.title;
+      cardBody.textContent = d.body;
+      spotlightContainer.className = 'spotlight-view-container ' + (d.layoutClass || '');
+    }
+    function leftFits() {
+      const a = document.getElementById('interactive-app').getBoundingClientRect();
+      const r = document.querySelector('.dialog-card').getBoundingClientRect();
+      const m = edgeMargin();
+      return r.top - a.top >= m - 0.5 && a.bottom - r.bottom >= m - 0.5;
+    }
+    function bestFitFor(pin) {
+      const card = document.querySelector('.dialog-card');
+      card.style.setProperty('--fs', '1');
+      clearScroll();
+      alignSpotlightToPin(pin);
+      /* the wide centred card (Ukraine) never limits the shared size */
+      if (!spotlightContainer.classList.contains('layout-left')) return FS_MAX;
+      for (let fs = FS_MAX; fs > 1.001; fs -= FS_STEP) {
+        card.style.setProperty('--fs', fs.toFixed(2));
+        alignSpotlightToPin(pin);
+        if (leftFits()) return fs;
+      }
+      return 1;
+    }
+    function computeGlobalFs() {
+      /* remember what is showing, test every region, then put it back */
+      const keep = { cls: spotlightContainer.className, t: cardTitle.textContent, b: cardBody.textContent };
+      let min = FS_MAX;
+      Object.keys(regionData).forEach(id => {
+        const pin = document.querySelector('.pin-btn[data-id="' + id + '"]');
+        if (!pin) return;
+        setRegionContent(id);
+        min = Math.min(min, bestFitFor(pin));
+      });
+      spotlightContainer.className = keep.cls;
+      cardTitle.textContent = keep.t;
+      cardBody.textContent = keep.b;
+      globalFs = Math.max(FS_TARGET_MIN, min);
+    }
+
     function fitAndAlign(pin) {
       if (!pin) return;
+      if (globalFs === null) computeGlobalFs();
+
       const app = document.getElementById('interactive-app');
       const card = document.querySelector('.dialog-card');
       const stack = document.getElementById('spotlight-stack');
       const beam = document.getElementById('spotlight-beam');
       const isLeft = spotlightContainer.classList.contains('layout-left');
-      const margin = app.offsetWidth * 0.0107; /* ~12px at full size */
 
-      card.style.setProperty('--fs', '1');
+      clearScroll();
+      let baseBeamTop = 0;
+      if (!isLeft) {
+        card.style.setProperty('--fs', '1');
+        alignSpotlightToPin(pin);
+        baseBeamTop = beam.getBoundingClientRect().top;
+      }
+      card.style.setProperty('--fs', globalFs.toFixed(3));
       alignSpotlightToPin(pin);
-      const baseBeamTop = beam.getBoundingClientRect().top;
 
-      function measure() {
+      if (isLeft) {
+        const maxH = app.getBoundingClientRect().height - 2 * edgeMargin();
+        if (card.offsetHeight > maxH + 0.5) {
+          const fixed = card.offsetHeight - cardBody.offsetHeight;
+          cardBody.style.maxHeight = Math.max(80, maxH - fixed) + 'px';
+          cardBody.classList.add('is-scrollable');
+          cardBody.tabIndex = 0;
+          alignSpotlightToPin(pin);
+        }
+      } else {
+        /* centred layout: hold the beam in place while the card has room
+           below it; any growth beyond that moves the card up instead */
         const a = app.getBoundingClientRect();
         const r = card.getBoundingClientRect();
-        if (isLeft) {
-          /* bottom-anchored card grows upward: keep clear of the top edge */
-          return { ok: r.top - a.top >= margin && a.bottom - r.bottom >= margin, shift: 0 };
-        }
-        /* centred layout: keep the beam where it is (so it still meets the
-           circle) and let the card grow down into the bottom padding */
-        const shift = baseBeamTop - beam.getBoundingClientRect().top;
-        return { ok: a.bottom - (r.bottom + shift) >= margin, shift: shift };
+        const slack = Math.max(0, a.bottom - r.bottom - app.offsetWidth * 0.0107);
+        const grow = baseBeamTop - beam.getBoundingClientRect().top;
+        const shift = Math.max(0, Math.min(grow, slack));
+        if (shift > 0) stack.style.transform = 'translateY(' + shift + 'px)';
       }
-
-      let best = 1, bestShift = 0;
-      for (let fs = FS_MAX; fs > 1.001; fs -= FS_STEP) {
-        card.style.setProperty('--fs', fs.toFixed(2));
-        alignSpotlightToPin(pin);
-        const m = measure();
-        if (m.ok) { best = fs; bestShift = m.shift; break; }
-      }
-      card.style.setProperty('--fs', best.toFixed(2));
-      alignSpotlightToPin(pin);
-      if (!isLeft && best > 1) stack.style.transform = 'translateY(' + bestShift + 'px)';
     }
 
     function realign() {
