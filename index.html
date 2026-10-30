@@ -51,6 +51,7 @@
       position: relative;
       overflow: hidden;
       transform: translateZ(0);
+      container-type: inline-size;
     }
 
     /* ========================================================= */
@@ -684,6 +685,59 @@
       overflow-wrap: break-word;
     }
 
+    /* ========================================================= */
+    /* SCALING LAYER: every size below follows the container width.  */
+    /* --u = 1 design pixel (1px when the interactive is 1120px wide) */
+    /* ========================================================= */
+    @property --u {
+      syntax: '<length>';
+      inherits: true;
+      initial-value: 1px;
+    }
+    .interactive-container > * { --u: 0.089286cqw; }
+
+    .app-header { padding: calc(12.8 * var(--u)) calc(28 * var(--u)); }
+    .sub-title { font-size: calc(15.2 * var(--u)); }
+    .header-buttons { gap: calc(8 * var(--u)); }
+    .icon-btn { width: calc(32 * var(--u)); height: calc(32 * var(--u)); }
+    .icon-btn svg { width: calc(16 * var(--u)); height: calc(16 * var(--u)); }
+
+    .view-cover { padding: calc(64 * var(--u)) calc(96 * var(--u)); }
+    .cover-content { max-width: calc(460 * var(--u)); gap: calc(32 * var(--u)); }
+    .cover-title { font-size: calc(48 * var(--u)); }
+    .btn-start { padding: calc(12 * var(--u)) calc(40 * var(--u)); font-size: calc(16 * var(--u)); }
+    .cover-illustration img { max-width: calc(360 * var(--u)); }
+
+    .pin-img { width: calc(21 * var(--u)); }
+
+    .spotlight-view-container { padding-bottom: calc(36 * var(--u)); }
+    .spotlight-beam { width: calc(960 * var(--u)); }
+    .spotlight-circle-frame { width: calc(132 * var(--u)); height: calc(132 * var(--u)); border-width: calc(2 * var(--u)); }
+    .spotlight-pin-icon { width: calc(20 * var(--u)); }
+
+    .dialog-card { width: calc(960 * var(--u)); padding: calc(28 * var(--u)) calc(44 * var(--u)) calc(36 * var(--u)); }
+    .dialog-card h2 { font-size: calc(23.2 * var(--u)); margin-bottom: calc(16 * var(--u)); padding-bottom: calc(12 * var(--u)); }
+    .dialog-card p { font-size: calc(14.08 * var(--u)); }
+    .close-card-btn { top: calc(20 * var(--u)); right: calc(20 * var(--u)); width: calc(32 * var(--u)); height: calc(32 * var(--u)); font-size: calc(17.6 * var(--u)); }
+
+    .spotlight-view-container.layout-left .dialog-card { width: 43%; }
+    .spotlight-view-container.layout-left.card-wide .dialog-card { width: 45%; }
+    .spotlight-view-container.layout-left.card-wider .dialog-card { width: 52.5%; }
+
+    .center-modal { padding: calc(52 * var(--u)) calc(56 * var(--u)) calc(36 * var(--u)); max-width: calc(820 * var(--u)); margin-top: calc(32 * var(--u)); }
+    .center-modal h2 { font-size: calc(15.2 * var(--u)); margin-bottom: calc(28 * var(--u)); }
+    .modal-badge-graphic { top: calc(-42 * var(--u)); width: calc(84 * var(--u)); height: calc(84 * var(--u)); }
+    .action-btn { padding: calc(10.4 * var(--u)) calc(40 * var(--u)); font-size: calc(15.2 * var(--u)); }
+    .completion-card { max-width: calc(580 * var(--u)); padding: calc(44 * var(--u)) calc(48 * var(--u)) calc(36 * var(--u)); }
+    .completion-illustration { max-width: calc(280 * var(--u)); margin-bottom: calc(24 * var(--u)); }
+    .completion-buttons { gap: calc(20 * var(--u)); margin-top: calc(24 * var(--u)); }
+
+    .biblio-overlay { padding: calc(24 * var(--u)); }
+    .biblio-card { padding: calc(28 * var(--u)) calc(40 * var(--u)); }
+    .bib-head h2 { font-size: calc(18 * var(--u)); margin-bottom: calc(16 * var(--u)); }
+    .bib-body { padding: calc(18 * var(--u)) calc(24 * var(--u)); font-size: calc(15 * var(--u)); }
+    .bib-entry { margin-bottom: calc(14 * var(--u)); padding-left: calc(24 * var(--u)); text-indent: calc(-24 * var(--u)); }
+
     @media (max-width: 768px) {
       .interactive-container { aspect-ratio: auto; min-height: 540px; }
       .view-cover { flex-direction: column-reverse; padding: 2.5rem 1.5rem 1.5rem; gap: 1.5rem; justify-content: center; }
@@ -1041,9 +1095,14 @@
       circle.style.setProperty('--cy', cy + 'px');
     }
 
-    window.addEventListener('resize', () => {
+    function realign() {
       if (contentModal.classList.contains('active')) alignSpotlightToPin(activePin);
-    });
+    }
+    window.addEventListener('resize', realign);
+    if (window.ResizeObserver) {
+      new ResizeObserver(() => requestAnimationFrame(realign))
+        .observe(document.getElementById('interactive-app'));
+    }
 
     // 1. CLICK START: HIDE COVER, ANIMATE PINS, SHOW INTRO MODAL
     document.getElementById('btn-start-cover').addEventListener('click', () => {
