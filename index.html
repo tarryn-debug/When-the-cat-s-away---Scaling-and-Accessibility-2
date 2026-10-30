@@ -208,7 +208,7 @@
       justify-content: center;
     }
 
-    /* Locked coordinate frame prevents aspect ratio drift */
+    /* Map container matching 1112.8 / 498.4 */
     .map-canvas-frame {
       position: relative;
       width: 100%;
@@ -246,10 +246,10 @@
     }
 
     #hl-southchina.active {
-      opacity: 0.35;
+      opacity: 0.25;
     }
 
-    /* RED LEADER LINE (PastedVector-27) */
+    /* Leader Line */
     .map-leader {
       opacity: 0;
       transition: opacity 0.2s ease;
@@ -315,14 +315,14 @@
       100% { transform: rotateY(180deg) scale(1); }
     }
 
-    /* Pin percentages anchored to the 1112.8 x 498.4 map frame */
-    .pin-ukraine    { top: 25.6%; left: 55.3%; }
-    .pin-turkey     { top: 32.4%; left: 56.5%; }
-    .pin-georgia    { top: 30.1%; left: 59.0%; }
-    .pin-syria      { top: 34.7%; left: 58.1%; }
-    .pin-yemen      { top: 47.3%; left: 61.1%; }
-    .pin-indiachina { top: 34.1%; left: 69.8%; }
-    .pin-southchina { top: 47.3%; left: 80.9%; }
+    /* PINS ALIGNED MATHEMATICALLY TO HIGHLIGHT COORDINATES (1112.8 x 498.4) */
+    .pin-ukraine    { top: 23.5%; left: 55.3%; }
+    .pin-turkey     { top: 29.8%; left: 57.0%; }
+    .pin-georgia    { top: 28.5%; left: 59.5%; }
+    .pin-syria      { top: 34.0%; left: 58.0%; }
+    .pin-yemen      { top: 48.0%; left: 61.2%; }
+    .pin-indiachina { top: 33.5%; left: 69.8%; }
+    .pin-southchina { top: 47.0%; left: 81.0%; }
 
     /* ========================================================= */
     /* 3. MODALS & SPOTLIGHT OVERLAYS                            */
@@ -388,7 +388,6 @@
       display: block;
     }
 
-    /* TURKEY/GEORGIA/SYRIA/YEMEN/INDIA-CHINA WEDGE OVERLAY */
     .spotlight-wedge {
       display: none;
       position: absolute;
@@ -398,7 +397,6 @@
       pointer-events: none;
     }
 
-    /* CIRCULAR SPOTLIGHT FRAME */
     .spotlight-circle-frame {
       position: absolute;
       top: var(--cy, 33%);
@@ -435,7 +433,6 @@
       filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.4));
     }
 
-    /* DIALOG CARD */
     .dialog-card {
       background: #ffffff;
       border-radius: 0;
@@ -484,9 +481,6 @@
       background: var(--color-bg-light);
     }
 
-    /* ========================================================= */
-    /* LEFT-ALIGNED REGIONS LAYOUT STYLES                        */
-    /* ========================================================= */
     .spotlight-view-container.layout-left .spotlight-stack {
       display: block;
       padding-left: 0;
@@ -503,13 +497,11 @@
       transition: none !important;
     }
 
-    /* Wider card for India-China & Yemen */
     .spotlight-view-container.layout-left.card-wide .dialog-card {
       width: 45%;
       bottom: 16%;
     }
 
-    /* Widest card for South China Sea */
     .spotlight-view-container.layout-left.card-wider .dialog-card {
       width: 52.5%;
       bottom: 12%;
@@ -530,13 +522,8 @@
       transition: none !important;
     }
 
-    .spotlight-view-container.layout-left .spotlight-triangle-clip { 
-      display: none; 
-    }
-    
-    .spotlight-view-container.layout-left .spotlight-wedge { 
-      display: block; 
-    }
+    .spotlight-view-container.layout-left .spotlight-triangle-clip { display: none; }
+    .spotlight-view-container.layout-left .spotlight-wedge { display: block; }
 
     .spotlight-view-container.layout-left .spotlight-circle-frame {
       left: var(--cx, 56%);
@@ -601,7 +588,6 @@
       transform: translateY(-1px);
     }
 
-    /* COMPLETION MODAL CUSTOM STYLES */
     .completion-card {
       max-width: 580px;
       padding: 2.75rem 3rem 2.25rem;
@@ -634,9 +620,6 @@
       color: var(--color-navy-dark) !important;
     }
 
-    /* ========================================================= */
-    /* BIBLIOGRAPHY MODAL                                        */
-    /* ========================================================= */
     .biblio-overlay {
       position: absolute;
       inset: 0;
@@ -755,12 +738,12 @@
     </header>
 
     <main class="stage-view">
-      <!-- MAP CANVAS FRAME (Locking base map, SVG highlights, and pins to exact 1112.8 / 498.4 ratio) -->
+      <!-- MAP CANVAS FRAME -->
       <div class="map-canvas-frame" id="map-canvas-frame">
         <!-- BASE MAP -->
         <img src="Resources/PastedVector-16.svg" id="main-world-map" alt="World Map" class="world-map-svg">
 
-        <!-- HOVER HIGHLIGHTS WITH PRECISE GEOGRAPHIC X, Y, WIDTH, HEIGHT ATTRIBUTES -->
+        <!-- HIGHLIGHT MAP SVGS (Fixed exact geographic bounds on 1112.8 x 498.4 canvas) -->
         <svg class="map-highlights" viewBox="0 0 1112.8 498.4" preserveAspectRatio="none" aria-hidden="true">
           <defs>
             <filter id="tint-southchina" color-interpolation-filters="sRGB">
@@ -768,22 +751,14 @@
               <feComposite in="c" in2="SourceAlpha" operator="in"/>
             </filter>
           </defs>
-          <!-- Ukraine: PastedVector-18 -->
           <image id="hl-ukraine"    class="map-hl" href="Resources/PastedVector-18.svg" x="589.3" y="96.7"  width="52.1" height="29.2"/>
-          <!-- Turkey: PastedVector-19 -->
           <image id="hl-turkey"     class="map-hl" href="Resources/PastedVector-19.svg" x="603.3" y="134.3" width="60.2" height="23.6"/>
-          <!-- Syria: PastedVector-20 -->
           <image id="hl-syria"      class="map-hl" href="Resources/PastedVector-20.svg" x="634.5" y="153"   width="20"   height="19"/>
-          <!-- Georgia: PastedVector-21 -->
           <image id="hl-georgia"    class="map-hl" href="Resources/PastedVector-21.svg" x="651"   y="133.5" width="22.1" height="9.5"/>
-          <!-- Yemen: PastedVector-22 -->
           <image id="hl-yemen"      class="map-hl" href="Resources/PastedVector-22.svg" x="664.5" y="219.8" width="34.1" height="24.2"/>
-          <!-- India-China Border: PastedVector-23 -->
           <image id="hl-indiachina" class="map-hl" href="Resources/PastedVector-23.svg" x="769"   y="155.6" width="15.5" height="20.4"/>
-          <!-- South China Sea: PastedVector-28 -->
           <image id="hl-southchina" class="map-hl" href="Resources/PastedVector-28.svg" x="875.8" y="189"   width="54.6" height="84.1" filter="url(#tint-southchina)"/>
           
-          <!-- India-China Red Leader Line: PastedVector-27 -->
           <image id="leader-indiachina" class="map-leader" href="Resources/PastedVector-27.svg" x="773.8" y="156.8" width="4.7" height="7.2"/>
         </svg>
 
@@ -843,7 +818,6 @@
               <img src="Resources/PastedVector-30.svg" alt="" class="spotlight-triangle-bg">
             </div>
 
-            <!-- DIAGONAL WEDGE FOR TURKEY, GEORGIA, SYRIA, YEMEN & INDIA-CHINA -->
             <svg class="spotlight-wedge" id="spotlight-wedge" aria-hidden="true">
               <polygon id="spotlight-wedge-poly" fill="#141F52"></polygon>
             </svg>
@@ -981,7 +955,7 @@
       return [a - o, a + o].map(t => [px + l * Math.cos(t), py + l * Math.sin(t)]);
     }
 
-    // Precise sub-pixel pin tip measurement relative to app container
+    // Measure exact tip coordinates in relation to app container
     function getPinTipCoordinates(pin, app) {
       const pinImg = pin.querySelector('.pin-img');
       const appRect = app.getBoundingClientRect();
@@ -1010,7 +984,6 @@
       circle.style.setProperty('--cx', cx + 'px');
       circle.style.setProperty('--cy', cy + 'px');
 
-      // Georgia: hang the card from the circle
       if (spotlightContainer.classList.contains('anchor-card')) {
         const top = Math.min(cy - 0.17 * circle.offsetWidth, app.offsetHeight - 12 - card.offsetHeight);
         card.style.top = top + 'px';
@@ -1020,7 +993,6 @@
         card.style.bottom = '';
       }
 
-      // Calculate wedge corners and tangent lines
       const r = circle.offsetWidth / 2 - 1;
       const p2 = [card.offsetLeft + card.offsetWidth, card.offsetTop + card.offsetHeight];
       const cardAboveCircle = card.offsetTop < cy - r;
@@ -1093,11 +1065,40 @@
       introModal.classList.remove('active');
     });
 
-    // 3. MAP PINS CLICK: Swap data and update image before opening modal
+    // 3. MAP PINS HOVER & CLICK HANDLERS
+    const icLeader = document.getElementById('leader-indiachina');
+
     document.querySelectorAll('.pin-btn').forEach(pin => {
+      pin.addEventListener('mouseenter', (e) => {
+        if (e.currentTarget.classList.contains('viewed')) return;
+        const id = e.currentTarget.dataset.id;
+        const data = regionData[id];
+        if (data && data.highlightId) {
+          const el = document.getElementById(data.highlightId);
+          if (el) el.classList.add('active');
+          if (id === 'indiachina' && icLeader) icLeader.classList.add('active');
+        }
+      });
+
+      pin.addEventListener('mouseleave', (e) => {
+        const id = e.currentTarget.dataset.id;
+        const data = regionData[id];
+        if (data && data.highlightId) {
+          const el = document.getElementById(data.highlightId);
+          if (el) el.classList.remove('active');
+          if (id === 'indiachina' && icLeader) icLeader.classList.remove('active');
+        }
+      });
+
       pin.addEventListener('click', (e) => {
         const id = e.currentTarget.dataset.id;
         const data = regionData[id];
+        if (data && data.highlightId) {
+          const el = document.getElementById(data.highlightId);
+          if (el) el.classList.remove('active');
+          if (id === 'indiachina' && icLeader) icLeader.classList.remove('active');
+        }
+
         if (data) {
           cardTitle.textContent = data.title;
           cardBody.textContent = data.body;
@@ -1162,6 +1163,8 @@
 
     document.getElementById('btn-reset').addEventListener('click', () => {
       viewedMap.clear();
+      document.querySelectorAll('.map-hl').forEach(el => el.classList.remove('active'));
+      if (icLeader) icLeader.classList.remove('active');
       document.querySelectorAll('.pin-btn').forEach(p => {
         p.classList.remove('viewed');
         p.classList.remove('animated');
@@ -1177,6 +1180,8 @@
 
     document.getElementById('btn-exit').addEventListener('click', () => {
       viewedMap.clear();
+      document.querySelectorAll('.map-hl').forEach(el => el.classList.remove('active'));
+      if (icLeader) icLeader.classList.remove('active');
       document.querySelectorAll('.pin-btn').forEach(p => {
         p.classList.remove('viewed');
         p.classList.remove('animated');
@@ -1192,46 +1197,6 @@
       biblioOverlay.classList.remove('active');
       coverView.classList.remove('hidden');
     });
-
-    // 6. HOVER HIGHLIGHTS & LEADER LINE
-    (function () {
-      const icLeader = document.getElementById('leader-indiachina');
-
-      document.querySelectorAll('.pin-btn').forEach(pin => {
-        const id = pin.dataset.id;
-        const data = regionData[id];
-        
-        const on = () => { 
-          if (!pin.classList.contains('viewed') && data && data.highlightId) {
-            const el = document.getElementById(data.highlightId);
-            if (el) el.classList.add('active');
-            if (id === 'indiachina' && icLeader) {
-              icLeader.classList.add('active');
-            }
-          }
-        };
-        const off = () => { 
-          if (data && data.highlightId) {
-            const el = document.getElementById(data.highlightId);
-            if (el) el.classList.remove('active');
-          }
-          if (id === 'indiachina' && icLeader) {
-            icLeader.classList.remove('active');
-          }
-        };
-
-        pin.addEventListener('mouseenter', on);
-        pin.addEventListener('focus', on);
-        pin.addEventListener('mouseleave', off);
-        pin.addEventListener('blur', off);
-        pin.addEventListener('click', off);
-      });
-
-      document.getElementById('btn-reset').addEventListener('click', () => {
-        document.querySelectorAll('.map-hl').forEach(el => el.classList.remove('active'));
-        if (icLeader) icLeader.classList.remove('active');
-      });
-    })();
   </script>
 </body>
 </html>
